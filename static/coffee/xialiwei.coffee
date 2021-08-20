@@ -69,6 +69,7 @@ $ ->
             error: (data) ->
                 console.log data
     $("body").on "click",".card_folder_list_item",(evt)->
+        old_folder_name = $(".current_folder_name").text
         k = $(this).attr("data-k")
         v = $(this).attr("data-v")
         $(".current_folder_name").text k
@@ -77,7 +78,9 @@ $ ->
         $(".target_add_folder_file")[0].outerHTML = $(".target_add_folder_file")[0].outerHTML
         $(".target_add_folder_name").val(k)
         $(".target_add_folder_dir").val("/")
-
+        new_folder_name = k
+        if old_folder_name != new_folder_name
+            $(".card_content_list").empty()
         load_folder(k,v)
     load_folder = (folder_name=null,folder_meta_hash=null)->
         if folder_name == null or folder_name == ""
@@ -97,7 +100,11 @@ $ ->
             error: (data) ->
                 console.log data
     load_folder_meta = (folder_name=null,folder_meta_hash=null)->
-        $(".card_content_list").empty()
+        # $(".card_content_list").empty()
+        oldlist = $(".card_content_list").find(".card_content_list_item")
+        oldpathlist = []
+        for item in oldlist
+            oldpathlist.push $(item).find(".card_content_list_item_img").attr("src")
         if folder_name == null or folder_meta_hash == null or folder_name == "" or folder_meta_hash == ""
             return
         url = "/*get_meta"
@@ -113,6 +120,8 @@ $ ->
                 if data == "no storage config"
                     return
                 if data.items?
+                    newpathlist = []
+                    
                     for k,v of data.items
                         k_list = k.split(".")
                         pre_html = ""
@@ -125,14 +134,16 @@ $ ->
                             pre_html = """
                             <video class="card_content_list_item_img" controls src="/#{folder_name}/#{k}">
                             """
-                        $(".card_content_list").append """
-                        <div class="card_content_list_item">
-                            #{pre_html}
-                            <div class="card_content_list_item_tools">
-                                <a href="/#{folder_name}/#{k}">下载</a>
+                        newpathlist.push "/#{folder_name}/#{k}"
+                        if "/#{folder_name}/#{k}" not in oldpathlist
+                            $(".card_content_list").append """
+                            <div class="card_content_list_item">
+                                #{pre_html}
+                                <div class="card_content_list_item_tools">
+                                    <a href="/#{folder_name}/#{k}">下载</a>
+                                </div>
                             </div>
-                        </div>
-                        """
+                            """
             error: (data) ->
                 console.log data
     load_folder_list = ()->
